@@ -1,18 +1,44 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <!-- ============================================
-         页面头部设置
-         ============================================ -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI 搜索助手</title>
 
-    <!-- 页面样式 -->
+    <!-- Google Fonts: 衬线字体 + Inter 无衬线 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
     <style>
         /* ============================================
-             CSS 样式 - 控制页面外观
+             Claude 设计系统 - 暖色调 AI 搜索界面
              ============================================ */
+
+        /* 颜色变量 */
+        :root {
+            --primary: #cc785c;
+            --primary-active: #a9583e;
+            --primary-disabled: #e6dfd8;
+            --ink: #141413;
+            --body: #3d3d3a;
+            --body-strong: #252523;
+            --muted: #6c6a64;
+            --muted-soft: #8e8b82;
+            --hairline: #e6dfd8;
+            --hairline-soft: #ebe6df;
+            --canvas: #faf9f5;
+            --surface-soft: #f5f0e8;
+            --surface-card: #efe9de;
+            --surface-dark: #181715;
+            --surface-dark-elevated: #252320;
+            --on-primary: #ffffff;
+            --on-dark: #faf9f5;
+            --accent-teal: #5db8a6;
+            --success: #5db872;
+            --warning: #d4a017;
+            --error: #c64545;
+        }
 
         /* 重置基础样式 */
         * {
@@ -21,30 +47,36 @@
             box-sizing: border-box;
         }
 
-        /* 页面整体布局 */
+        /* 页面整体布局 - 暖米白画布 */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--canvas);
+            color: var(--body);
             min-height: 100vh;
             padding: 20px;
+            line-height: 1.55;
         }
 
-        /* 主容器 */
+        /* 主容器 - 米白表面 */
         .container {
             max-width: 900px;
             margin: 0 auto;
-            background: white;
+            background: var(--surface-soft);
             border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            padding: 30px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            padding: 48px;
         }
 
-        /* 标题样式 */
+        /* 标题样式 - 衬线字体 */
         h1 {
+            font-family: "Cormorant Garamond", "Copernicus", serif;
+            font-size: 48px;
+            font-weight: 400;
+            letter-spacing: -0.5px;
+            color: var(--ink);
             text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 28px;
+            margin-bottom: 32px;
+            line-height: 1.15;
         }
 
         /* 输入区域 */
@@ -52,119 +84,169 @@
             margin-bottom: 20px;
         }
 
-        /* 输入框 */
+        /* 输入框 - 米白画布 + 细边框 */
         textarea {
             width: 100%;
-            height: 100px;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
+            height: 120px;
+            padding: 16px;
+            background: var(--canvas);
+            border: 1px solid var(--hairline);
             border-radius: 8px;
             font-size: 16px;
-            font-family: inherit;
+            font-family: "Inter", sans-serif;
+            color: var(--ink);
             resize: vertical;
-            transition: border-color 0.3s;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
         textarea:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(204, 120, 92, 0.15);
         }
 
-        /* 搜索按钮 */
+        textarea::placeholder {
+            color: var(--muted-soft);
+        }
+
+        /* 搜索按钮 - 珊瑚橙主按钮 */
         .search-btn {
             width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            padding: 16px 24px;
+            background: var(--primary);
+            color: var(--on-primary);
             border: none;
             border-radius: 8px;
-            font-size: 18px;
-            font-weight: bold;
+            font-size: 16px;
+            font-weight: 500;
+            font-family: "Inter", sans-serif;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: background-color 0.2s, transform 0.15s;
         }
 
         .search-btn:hover {
-            transform: translateY(-2px);
+            background: var(--primary-active);
         }
 
         .search-btn:active {
-            transform: translateY(0);
+            transform: scale(0.98);
         }
 
         .search-btn:disabled {
-            opacity: 0.6;
+            background: var(--primary-disabled);
             cursor: not-allowed;
+            transform: none;
         }
 
-        /* 状态显示区域 */
+        /* 状态显示区域 - 卡片表面 */
         .status-section {
-            background: #f5f5f5;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-            display: none; /* 默认隐藏 */
+            background: var(--surface-card);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-top: 24px;
+            display: none;
         }
 
         .status-text {
-            color: #666;
-            font-size: 14px;
+            color: var(--body);
+            font-size: 15px;
             text-align: center;
         }
 
         /* 结果展示区域 */
         .result-section {
-            display: none; /* 默认隐藏 */
+            display: none;
+            margin-top: 32px;
         }
 
         .result-title {
-            font-size: 20px;
-            color: #333;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #e0e0e0;
+            font-family: "Cormorant Garamond", serif;
+            font-size: 28px;
+            font-weight: 400;
+            letter-spacing: -0.3px;
+            color: var(--ink);
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--hairline);
         }
 
         .result-content {
-            line-height: 1.8;
-            color: #444;
+            color: var(--body);
+            line-height: 1.75;
         }
 
-        /* Markdown 格式样式 */
+        /* Markdown 格式样式 - Claude 风格 */
         .result-content h1,
         .result-content h2,
         .result-content h3 {
-            margin-top: 20px;
-            margin-bottom: 10px;
-            color: #333;
+            font-family: "Cormorant Garamond", serif;
+            font-weight: 400;
+            margin-top: 28px;
+            margin-bottom: 12px;
+            color: var(--ink);
+        }
+
+        .result-content h1 {
+            font-size: 36px;
+            letter-spacing: -0.5px;
+        }
+
+        .result-content h2 {
+            font-size: 28px;
+            letter-spacing: -0.3px;
+        }
+
+        .result-content h3 {
+            font-size: 22px;
+            letter-spacing: -0.2px;
+        }
+
+        .result-content p {
+            margin-bottom: 16px;
         }
 
         .result-content ul,
         .result-content ol {
-            margin-left: 20px;
-            margin-bottom: 15px;
+            margin-left: 24px;
+            margin-bottom: 16px;
         }
 
         .result-content li {
             margin-bottom: 8px;
         }
 
-        .result-content code {
-            background: #f0f0f0;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: monospace;
+        .result-content strong {
+            font-weight: 500;
+            color: var(--body-strong);
         }
 
-        /* 加载动画 */
+        .result-content code {
+            background: var(--surface-dark);
+            color: var(--on-dark);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: "SF Mono", "Menlo", monospace;
+            font-size: 14px;
+        }
+
+        .result-content a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .result-content a:hover {
+            text-decoration: underline;
+        }
+
+        /* 加载动画 - 珊瑚橙 */
         .loading {
             display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--surface-card);
+            border-top-color: var(--primary);
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: spin 0.8s linear infinite;
             margin-right: 10px;
             vertical-align: middle;
         }
@@ -173,17 +255,28 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 24px;
+            }
+
+            h1 {
+                font-size: 32px;
+            }
+
+            .result-title {
+                font-size: 22px;
+            }
+        }
     </style>
 </head>
 
 <body>
-    <!-- ============================================
-         页面主体内容
-         ============================================ -->
-
     <div class="container">
-        <!-- 页面标题 -->
-        <h1>🔍 AI 搜索助手</h1>
+        <!-- 页面标题 - 衬线字体 -->
+        <h1>AI 搜索助手</h1>
 
         <!-- 输入区域 -->
         <div class="input-section">
@@ -193,7 +286,7 @@
             ></textarea>
         </div>
 
-        <!-- 搜索按钮 -->
+        <!-- 搜索按钮 - 珊瑚橙 -->
         <button class="search-btn" id="searchBtn" onclick="doSearch()">
             开始搜索
         </button>
@@ -208,14 +301,11 @@
 
         <!-- 结果展示区域 -->
         <div class="result-section" id="resultSection">
-            <h2 class="result-title">📄 研究报告</h2>
+            <h2 class="result-title">研究报告</h2>
             <div class="result-content" id="resultContent"></div>
         </div>
     </div>
 
-    <!-- ============================================
-         JavaScript 代码 - 处理用户交互
-         ============================================ -->
     <script>
         /**
          * 执行搜索的函数
@@ -262,12 +352,12 @@
 
                 // 如果有错误，显示错误信息
                 if (data.error) {
-                    statusText.innerHTML = '❌ ' + data.error;
+                    statusText.innerHTML = '<span style="color: var(--error);">' + data.error + '</span>';
                     return;
                 }
 
                 // 显示搜索结果
-                statusText.innerHTML = `✅ 搜索完成！共进行 ${data.search_rounds} 轮搜索，找到 ${data.total_results} 条相关结果`;
+                statusText.innerHTML = '搜索完成！共进行 ' + data.search_rounds + ' 轮搜索，找到 ' + data.total_results + ' 条相关结果';
 
                 // 渲染报告（简单的 Markdown 转换）
                 resultContent.innerHTML = renderMarkdown(data.report);
@@ -276,7 +366,7 @@
             } catch (error) {
                 // 如果出错，显示错误信息
                 console.error('搜索失败:', error);
-                statusText.innerHTML = '❌ 搜索失败，请检查网络连接或稍后重试';
+                statusText.innerHTML = '<span style="color: var(--error);">搜索失败，请检查网络连接或稍后重试</span>';
             } finally {
                 // 恢复按钮状态
                 searchBtn.disabled = false;
@@ -291,6 +381,8 @@
         function renderMarkdown(text) {
             // 简单的 Markdown 转换规则
             let html = text
+                // 代码块（在行内代码之前处理）
+                .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
                 // 标题
                 .replace(/^### (.*$)/gim, '<h3>$1</h3>')
                 .replace(/^## (.*$)/gim, '<h2>$1</h2>')
@@ -301,12 +393,13 @@
                 .replace(/\*(.*?)\*/g, '<em>$1</em>')
                 // 链接
                 .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-                // 代码
+                // 行内代码
                 .replace(/`([^`]+)`/g, '<code>$1</code>')
                 // 换行
+                .replace(/\n\n/g, '</p><p>')
                 .replace(/\n/g, '<br>');
 
-            return html;
+            return '<p>' + html + '</p>';
         }
 
         /**
