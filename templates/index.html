@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <!-- ============================================
+         页面头部设置
+         ============================================ -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 搜索助手</title>
+
+    <!-- 页面样式 -->
+    <style>
+        /* ============================================
+             CSS 样式 - 控制页面外观
+             ============================================ */
+
+        /* 重置基础样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 页面整体布局 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* 主容器 */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
+        }
+
+        /* 标题样式 */
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        /* 输入区域 */
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        /* 输入框 */
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* 搜索按钮 */
+        .search-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .search-btn:active {
+            transform: translateY(0);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* 状态显示区域 */
+        .status-section {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: none; /* 默认隐藏 */
+        }
+
+        .status-text {
+            color: #666;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        /* 结果展示区域 */
+        .result-section {
+            display: none; /* 默认隐藏 */
+        }
+
+        .result-title {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .result-content {
+            line-height: 1.8;
+            color: #444;
+        }
+
+        /* Markdown 格式样式 */
+        .result-content h1,
+        .result-content h2,
+        .result-content h3 {
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .result-content ul,
+        .result-content ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .result-content li {
+            margin-bottom: 8px;
+        }
+
+        .result-content code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ============================================
+         页面主体内容
+         ============================================ -->
+
+    <div class="container">
+        <!-- 页面标题 -->
+        <h1>🔍 AI 搜索助手</h1>
+
+        <!-- 输入区域 -->
+        <div class="input-section">
+            <textarea
+                id="queryInput"
+                placeholder="请输入你想了解的问题，比如：&#10;• 大模型预训练和推理一体化的研究现状&#10;• 2025年考研英语阅读技巧&#10;• Python Flask 和 FastAPI 的对比"
+            ></textarea>
+        </div>
+
+        <!-- 搜索按钮 -->
+        <button class="search-btn" id="searchBtn" onclick="doSearch()">
+            开始搜索
+        </button>
+
+        <!-- 状态显示区域 -->
+        <div class="status-section" id="statusSection">
+            <p class="status-text" id="statusText">
+                <span class="loading"></span>
+                正在搜索中...
+            </p>
+        </div>
+
+        <!-- 结果展示区域 -->
+        <div class="result-section" id="resultSection">
+            <h2 class="result-title">📄 研究报告</h2>
+            <div class="result-content" id="resultContent"></div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         JavaScript 代码 - 处理用户交互
+         ============================================ -->
+    <script>
+        /**
+         * 执行搜索的函数
+         * 当用户点击"开始搜索"按钮时触发
+         */
+        async function doSearch() {
+            // 获取用户输入
+            const queryInput = document.getElementById('queryInput');
+            const query = queryInput.value.trim();
+
+            // 如果没有输入，提示用户
+            if (!query) {
+                alert('请输入搜索问题');
+                return;
+            }
+
+            // 获取页面元素
+            const searchBtn = document.getElementById('searchBtn');
+            const statusSection = document.getElementById('statusSection');
+            const statusText = document.getElementById('statusText');
+            const resultSection = document.getElementById('resultSection');
+            const resultContent = document.getElementById('resultContent');
+
+            // 重置页面状态
+            resultSection.style.display = 'none';
+            resultContent.innerHTML = '';
+            statusSection.style.display = 'block';
+            statusText.innerHTML = '<span class="loading"></span> 正在分析问题并生成关键词...';
+            searchBtn.disabled = true;
+            searchBtn.textContent = '搜索中...';
+
+            try {
+                // 发送搜索请求到后端
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query: query })
+                });
+
+                // 解析返回的数据
+                const data = await response.json();
+
+                // 如果有错误，显示错误信息
+                if (data.error) {
+                    statusText.innerHTML = '❌ ' + data.error;
+                    return;
+                }
+
+                // 显示搜索结果
+                statusText.innerHTML = `✅ 搜索完成！共进行 ${data.search_rounds} 轮搜索，找到 ${data.total_results} 条相关结果`;
+
+                // 渲染报告（简单的 Markdown 转换）
+                resultContent.innerHTML = renderMarkdown(data.report);
+                resultSection.style.display = 'block';
+
+            } catch (error) {
+                // 如果出错，显示错误信息
+                console.error('搜索失败:', error);
+                statusText.innerHTML = '❌ 搜索失败，请检查网络连接或稍后重试';
+            } finally {
+                // 恢复按钮状态
+                searchBtn.disabled = false;
+                searchBtn.textContent = '开始搜索';
+            }
+        }
+
+        /**
+         * 简单的 Markdown 渲染函数
+         * 把 Markdown 格式转换为 HTML
+         */
+        function renderMarkdown(text) {
+            // 简单的 Markdown 转换规则
+            let html = text
+                // 标题
+                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                // 粗体
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                // 斜体
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                // 链接
+                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+                // 代码
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                // 换行
+                .replace(/\n/g, '<br>');
+
+            return html;
+        }
+
+        /**
+         * 允许按 Ctrl+Enter 或 Cmd+Enter 提交搜索
+         */
+        document.getElementById('queryInput').addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                doSearch();
+            }
+        });
+    </script>
+</body>
+</html>

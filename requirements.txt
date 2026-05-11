@@ -1,0 +1,11 @@
+# Flask - Web 框架，用来创建网页应用
+flask==3.0.0
+
+# python-dotenv - 用来读取 .env 环境变量文件
+python-dotenv==1.0.0
+
+# requests - 用来发送 HTTP 请求（调用 Tavily API）
+requests==2.31.0
+
+# openai - 用来调用大模型 API（DeepSeek 兼容 OpenAI 格式）
+openai==1.12.0
